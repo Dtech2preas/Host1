@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=http://momapi.dev.digital.oldmutual.co.za">
-    <title>Redirecting...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Content</title>
 </head>
 <body>
-    <p>Redirecting to <a href="http://momapi.dev.digital.oldmutual.co.za">http://momapi.dev.digital.oldmutual.co.za</a></p>
+    <div id="content">Loading content...</div>
+    <script>
+        fetch("http://mtn-play.site.byorbit.com")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("content").innerHTML = data;
+            })
+            .catch(error => {
+                document.getElementById("content").innerHTML = "Failed to load content.";
+                console.error("Error:", error);
+            });
+    </script>
 </body>
 </html>
