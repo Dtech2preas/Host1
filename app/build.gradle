@@ -6,8 +6,8 @@ plugins {
 android {
     compileSdk 34
     defaultConfig {
-        applicationId "com.example.readyvpn"
-        minSdk 24
+        applicationId "com.example.sshvpn"
+        minSdk 21
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -15,7 +15,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
@@ -24,6 +24,6 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
-    implementation 'com.wireguard.android:tunnel:1.0.20211029'
+    implementation 'com.jcraft:jsch:0.1.55' // SSH library
     implementation 'com.google.android.gms:play-services-ads:22.6.0'
 }
