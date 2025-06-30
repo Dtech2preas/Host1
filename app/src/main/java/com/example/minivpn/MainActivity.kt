@@ -1,33 +1,50 @@
-package com.example.readyvpn
+package com.example.sshvpn
 
 import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.readyvpn.databinding.ActivityMainBinding
+import com.example.sshvpn.databinding.ActivityMainBinding
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdView
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityMainBinding
+    private val vpnRequestCode = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // AdMob
+        // Load AdMob banner
         val adRequest = AdRequest.Builder().build()
         binding.adView.loadAd(adRequest)
 
-        // VPN Connection
+        // VPN connection button
         binding.connectButton.setOnClickListener {
-            if (VpnService.prepare(this) == null) {
-                startService(Intent(this, VpnService::class.java))
-                binding.statusText.text = "Connected"
-            } else {
-                startActivityForResult(Intent(this, VpnService::class.java), 0)
-            }
+            connectToVpn()
+        }
+    }
+
+    private fun connectToVpn() {
+        val intent = VpnService.prepare(this)
+        if (intent != null) {
+            startActivityForResult(intent, vpnRequestCode)
+        } else {
+            startVpnService()
+        }
+    }
+
+    private fun startVpnService() {
+        startService(Intent(this, SshVpnService::class.java))
+        binding.statusText.text = "Connecting..."
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == vpnRequestCode && resultCode == RESULT_OK) {
+            startVpnService()
         }
     }
 }
