@@ -35,12 +35,12 @@ class SshVpnService : VpnService() {
             try {
                 val jsch = JSch()
                 val session = jsch.getSession(
-                    "YOUR_SSH_USERNAME",   // Replace with your SSH username
-                    "YOUR_SSH_HOST",       // Replace with server host (e.g., server.fastssh.com)
-                    YOUR_SSH_PORT          // Replace with port number (22, 443, etc.)
+                    "sshocean-rfdg",   // Replace with your SSH username
+                    "id1.sshocean.site",       // Replace with server host (e.g., server.fastssh.com)
+                    443          // Replace with port number (22, 443, etc.)
                 )
                 
-                session.setPassword("YOUR_SSH_PASSWORD") // Replace with your password
+                session.setPassword("1234") // Replace with your password
                 session.setConfig("StrictHostKeyChecking", "no")
                 
                 // 30-second keepalive to prevent disconnections
