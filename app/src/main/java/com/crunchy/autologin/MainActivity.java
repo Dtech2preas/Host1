@@ -1,7 +1,6 @@
 package com.crunchy.autologin;
 
 import android.os.Bundle;
-import android.util.Base64;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.WebResourceRequest;
@@ -131,13 +130,48 @@ public class MainActivity extends AppCompatActivity {
                 "   var email = '" + escapedEmail + "';" +
                 "   var password = '" + escapedPassword + "';" +
                 "   var step = 0;" +
-                "   function triggerInput(element, value) {" +
-                "       element.focus();" +
-                "       element.value = value;" +
-                "       element.dispatchEvent(new Event('input', { bubbles: true }));" +
-                "       element.dispatchEvent(new Event('change', { bubbles: true }));" +
-                "       element.blur();" +
+                "   var maxRetries = 5;" +
+                "   var retryCount = 0;" +
+                "" +
+                "   function triggerReactEvent(element, eventName, value) {" +
+                "       if (element.__reactEventHandlers && element.__reactEventHandlers[eventName]) {" +
+                "           element.__reactEventHandlers[eventName]({ target: element, currentTarget: element, bubbles: true });" +
+                "       }" +
+                "       var ev = new Event(eventName, { bubbles: true, cancelable: true });" +
+                "       if (value !== undefined && eventName === 'input') {" +
+                "           ev.simulated = true;" +
+                "       }" +
+                "       element.dispatchEvent(ev);" +
                 "   }" +
+                "" +
+                "   function typeIntoField(field, value, callback) {" +
+                "       var index = 0;" +
+                "       field.focus();" +
+                "       triggerReactEvent(field, 'focus');" +
+                "       field.value = '';" +
+                "       function typeChar() {" +
+                "           if (index < value.length) {" +
+                "               var ch = value[index];" +
+                "               var keydownEvent = new KeyboardEvent('keydown', { key: ch, bubbles: true });" +
+                "               var keypressEvent = new KeyboardEvent('keypress', { key: ch, bubbles: true });" +
+                "               field.dispatchEvent(keydownEvent);" +
+                "               field.dispatchEvent(keypressEvent);" +
+                "               field.value += ch;" +
+                "               triggerReactEvent(field, 'input', field.value);" +
+                "               var keyupEvent = new KeyboardEvent('keyup', { key: ch, bubbles: true });" +
+                "               field.dispatchEvent(keyupEvent);" +
+                "               index++;" +
+                "               setTimeout(typeChar, 50 + Math.random() * 100);" +
+                "           } else {" +
+                "               triggerReactEvent(field, 'change');" +
+                "               field.blur();" +
+                "               triggerReactEvent(field, 'blur');" +
+                "               if (callback) callback();" +
+                "           }" +
+                "       }" +
+                "       typeChar();" +
+                "   }" +
+                "" +
                 "   function findButtonByText(text) {" +
                 "       var btns = document.querySelectorAll('button');" +
                 "       for (var i = 0; i < btns.length; i++) {" +
@@ -147,6 +181,21 @@ public class MainActivity extends AppCompatActivity {
                 "       }" +
                 "       return null;" +
                 "   }" +
+                "" +
+                "   function verifyAndProceed() {" +
+                "       var emailField = document.querySelector('input[name=\"username\"], input[name=\"email\"], input[type=\"email\"]');" +
+                "       var passField = document.querySelector('input[name=\"password\"], input[type=\"password\"]');" +
+                "       if (emailField && passField && emailField.value === email && passField.value === password) {" +
+                "           var btn = document.querySelector('button[type=\"submit\"], button.login-button') || findButtonByText('log in') || findButtonByText('sign in');" +
+                "           if (btn) {" +
+                "               setTimeout(function() { btn.click(); }, 500);" +
+                "           }" +
+                "       } else if (retryCount < maxRetries) {" +
+                "           retryCount++;" +
+                "           setTimeout(run, 1500);" +
+                "       }" +
+                "   }" +
+                "" +
                 "   function run() {" +
                 "       try {" +
                 "           var cookieBtn = document.querySelector('#onetrust-accept-btn-handler');" +
@@ -155,20 +204,13 @@ public class MainActivity extends AppCompatActivity {
                 "           }" +
                 "           var emailField = document.querySelector('input[name=\"username\"], input[name=\"email\"], input[type=\"email\"]');" +
                 "           var passField = document.querySelector('input[name=\"password\"], input[type=\"password\"]');" +
-                "           var btn = document.querySelector('button[type=\"submit\"], button.login-button') || findButtonByText('log in') || findButtonByText('sign in') || findButtonByText('login');" +
-                "           if (emailField && passField && btn) {" +
+                "           if (emailField && passField) {" +
                 "               if (step === 0) {" +
-                "                   emailField.click();" +
-                "                   triggerInput(emailField, email);" +
-                "                   step++;" +
-                "                   setTimeout(run, 1000);" +
+                "                   typeIntoField(emailField, email, function() { step++; setTimeout(run, 1000); });" +
                 "               } else if (step === 1) {" +
-                "                   passField.click();" +
-                "                   triggerInput(passField, password);" +
-                "                   step++;" +
-                "                   setTimeout(run, 1000);" +
+                "                   typeIntoField(passField, password, function() { step++; setTimeout(run, 1000); });" +
                 "               } else if (step === 2) {" +
-                "                   btn.click();" +
+                "                   verifyAndProceed();" +
                 "               }" +
                 "           } else {" +
                 "               setTimeout(run, 1000);" +
@@ -177,8 +219,9 @@ public class MainActivity extends AppCompatActivity {
                 "           setTimeout(run, 1000);" +
                 "       }" +
                 "   }" +
-                "   setTimeout(run, 1000);" +
+                "   setTimeout(run, 1500);" +
                 "})()";
+
         webView.evaluateJavascript(js, null);
     }
 
