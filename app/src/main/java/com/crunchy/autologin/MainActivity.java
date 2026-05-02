@@ -128,21 +128,56 @@ public class MainActivity extends AppCompatActivity {
         String escapedPassword = escapeJsString(password);
 
         String js = "(function() {" +
-                "   function fill() {" +
-                "       var emailField = document.querySelector('input[name=\"username\"], input[name=\"email\"], input[type=\"email\"]');" +
-                "       var passField = document.querySelector('input[name=\"password\"], input[type=\"password\"]');" +
-                "       var btn = document.querySelector('button[type=\"submit\"], button.login-button, button:has-text(\"Login\"), button:has-text(\"Sign In\")');" +
-                "       if (emailField && passField && btn) {" +
-                "           emailField.value = '" + escapedEmail + "';" +
-                "           emailField.dispatchEvent(new Event('input', { bubbles: true }));" +
-                "           passField.value = '" + escapedPassword + "';" +
-                "           passField.dispatchEvent(new Event('input', { bubbles: true }));" +
-                "           setTimeout(function() { btn.click(); }, 1000);" +
-                "       } else {" +
-                "           setTimeout(fill, 1000);" +
+                "   var email = '" + escapedEmail + "';" +
+                "   var password = '" + escapedPassword + "';" +
+                "   var step = 0;" +
+                "   function triggerInput(element, value) {" +
+                "       element.focus();" +
+                "       element.value = value;" +
+                "       element.dispatchEvent(new Event('input', { bubbles: true }));" +
+                "       element.dispatchEvent(new Event('change', { bubbles: true }));" +
+                "       element.blur();" +
+                "   }" +
+                "   function findButtonByText(text) {" +
+                "       var btns = document.querySelectorAll('button');" +
+                "       for (var i = 0; i < btns.length; i++) {" +
+                "           if (btns[i].innerText && btns[i].innerText.toLowerCase().includes(text.toLowerCase())) {" +
+                "               return btns[i];" +
+                "           }" +
+                "       }" +
+                "       return null;" +
+                "   }" +
+                "   function run() {" +
+                "       try {" +
+                "           var cookieBtn = document.querySelector('#onetrust-accept-btn-handler');" +
+                "           if (cookieBtn && cookieBtn.offsetParent !== null) {" +
+                "               cookieBtn.click();" +
+                "           }" +
+                "           var emailField = document.querySelector('input[name=\"username\"], input[name=\"email\"], input[type=\"email\"]');" +
+                "           var passField = document.querySelector('input[name=\"password\"], input[type=\"password\"]');" +
+                "           var btn = document.querySelector('button[type=\"submit\"], button.login-button') || findButtonByText('log in') || findButtonByText('sign in') || findButtonByText('login');" +
+                "           if (emailField && passField && btn) {" +
+                "               if (step === 0) {" +
+                "                   emailField.click();" +
+                "                   triggerInput(emailField, email);" +
+                "                   step++;" +
+                "                   setTimeout(run, 1000);" +
+                "               } else if (step === 1) {" +
+                "                   passField.click();" +
+                "                   triggerInput(passField, password);" +
+                "                   step++;" +
+                "                   setTimeout(run, 1000);" +
+                "               } else if (step === 2) {" +
+                "                   btn.click();" +
+                "               }" +
+                "           } else {" +
+                "               setTimeout(run, 1000);" +
+                "           }" +
+                "       } catch (e) {" +
+                "           setTimeout(run, 1000);" +
                 "       }" +
                 "   }" +
-                "   fill();" +
+                "   setTimeout(run, 1000);" +
                 "})()";
         webView.evaluateJavascript(js, null);
     }
